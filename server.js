@@ -4,15 +4,21 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const path = require('path');
 
+// INI BARIS YANG TADI HILANG: Inisialisasi Express
 const app = express();
 
 // 1. MENGAKTIFKAN SECURITY HEADERS (Mitigasi XSS & Clickjacking)
-app.use(helmet());
+// (Catatan: CSP dimatikan sementara agar desain CSS Bootstrap bisa dimuat dari internet)
+app.use(helmet({ contentSecurityPolicy: false }));
 
 // Middleware untuk membaca JSON dan Cookie
 app.use(express.json());
 app.use(cookieParser());
+
+// 2. MENYAMBUNGKAN KE WEBSITE (FOLDER PUBLIC)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routing Utama
 app.use('/api/auth', authRoutes);
