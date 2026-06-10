@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const { verifyToken } = require('../middlewares/authMiddleware');
+
 const rateLimit = require('express-rate-limit');
 const authController = require('../controllers/authController');
+console.log("AUTH CONTROLLER:", authController);
 const authMiddleware = require('../middlewares/authMiddleware');
+console.log("registerUser =", typeof authController.registerUser);
+console.log("loginUser =", typeof authController.loginUser);
+console.log("getUsers =", typeof authController.getUsers);
+
+console.log("verifyToken =", typeof authMiddleware.verifyToken);
+console.log("checkRole =", typeof authMiddleware.checkRole);
 
 // Pembuatan aturan pembatasan laju (Rate Limiting) dengan Security JSON Logging
 const loginLimiter = rateLimit({
@@ -47,4 +56,29 @@ router.get('/admin-dashboard', authMiddleware.verifyToken, authMiddleware.checkR
     res.json({ message: "Akses Diberikan. Selamat datang di Panel Administrator." });
 });
 
+router.get(
+    '/users',
+    authMiddleware.verifyToken,
+    authMiddleware.checkRole('admin'),
+    authController.getUsers
+);
+
+router.get(
+    '/dashboard-stats',
+    authMiddleware.verifyToken,
+    authMiddleware.checkRole('admin'),
+    authController.getDashboardStats
+);
+
+router.get(
+    '/auditlogs',
+    authMiddleware.verifyToken,
+    authMiddleware.checkRole('admin'),
+    authController.getAuditLogs
+);
+router.get(
+    '/verify-session',
+    verifyToken,
+    authController.verifySession
+);
 module.exports = router;

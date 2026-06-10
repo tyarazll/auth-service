@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>User Management - Admin</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+body{
+    margin:0;
+    background:#f4f6f9;
+    font-family:'Segoe UI',sans-serif;
+}
+
+.sidebar{
+    width:250px;
+    height:100vh;
+    background:#003d66;
+    position:fixed;
+    left:0;
+    top:0;
+    color:white;
+}
+
+.sidebar-header{
+    text-align:center;
+    padding:25px;
+    border-bottom:1px solid rgba(255,255,255,.2);
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:15px 25px;
+}
+
+.sidebar a:hover{
+    background:#005088;
+}
+
+.content{
+    margin-left:250px;
+    padding:30px;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.stat-card{
+    text-align:center;
+    padding:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<script>
+
+if(localStorage.getItem("role") !== "admin"){
+
+    alert("Akses Ditolak!");
+
+    window.location.href = "dashboard.html";
+
+}
+
+</script>
+
+<div class="sidebar">
+
+    <div class="sidebar-header">
+
+        <h4>
+            <i class="fa-solid fa-shield-halved"></i>
+            SSE Admin
+        </h4>
+
+    </div>
+
+    <a href="admin.html">
+        <i class="fa-solid fa-chart-line"></i>
+        Dashboard
+    </a>
+
+    <a href="admin-user.html">
+        <i class="fa-solid fa-users"></i>
+        User Management
+    </a>
+
+    <a href="admin-auditlogs.html">
+        <i class="fa-solid fa-clipboard-list"></i>
+        Audit Logs
+    </a>
+
+    <a href="admin-security.html">
+        <i class="fa-solid fa-shield"></i>
+        Security Status
+    </a>
+
+    <a href="#" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Logout
+    </a>
+
+</div>
+
+<div class="content">
+
+    <h2>
+        User Management
+    </h2>
+
+    <p>
+        Kelola akun pengguna yang terdaftar pada sistem.
+    </p>
+
+    <div class="row mt-4">
+
+        <div class="col-md-4">
+
+            <div class="card stat-card">
+
+                <h6>Total Users</h6>
+
+                <h2 id="totalUsers">
+                    0
+                </h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card mt-4 p-4">
+
+        <h4>Daftar Pengguna</h4>
+
+        <hr>
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Role</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="userTable">
+
+                <tr>
+
+                    <td colspan="3" class="text-center">
+
+                        Loading...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+async function loadUsers(){
+
+    try{
+
+        const token =
+        localStorage.getItem("token");
+
+        const response =
+        await fetch(
+            "/api/auth/users",
+            {
+                headers:{
+                    Authorization:
+                    `Bearer ${token}`
+                }
+            }
+        );
+
+        const users =
+        await response.json();
+
+        console.log(users);
+
+        let html = '';
+
+        users.forEach(user => {
+
+            html += `
+
+            <tr>
+
+                <td>${user.id}</td>
+
+                <td>${user.username}</td>
+
+                <td>
+
+                    <span class="badge ${
+                        user.role === 'admin'
+                        ? 'bg-danger'
+                        : 'bg-primary'
+                    }">
+
+                        ${user.role}
+
+                    </span>
+
+                </td>
+
+            </tr>
+
+            `;
+
+        });
+
+        document.getElementById(
+            'userTable'
+        ).innerHTML = html;
+
+        document.getElementById(
+            'totalUsers'
+        ).innerText =
+        users.length;
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        document.getElementById(
+            'userTable'
+        ).innerHTML =
+
+        `<tr>
+            <td colspan="3">
+                Gagal memuat data user
+            </td>
+        </tr>`;
+
+    }
+
+}
+
+loadUsers();
+
+function logout(){
+
+    localStorage.clear();
+
+    window.location.href =
+    "index.html";
+
+}
+
+</script>
+
+</body>
+</html>

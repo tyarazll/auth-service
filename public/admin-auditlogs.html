@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Audit Logs - Admin</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+
+body{
+    margin:0;
+    background:#f4f6f9;
+    font-family:'Segoe UI',sans-serif;
+}
+
+.sidebar{
+    width:250px;
+    height:100vh;
+    background:#003d66;
+    position:fixed;
+    left:0;
+    top:0;
+    color:white;
+}
+
+.sidebar-header{
+    text-align:center;
+    padding:25px;
+    border-bottom:1px solid rgba(255,255,255,.2);
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    padding:15px 25px;
+}
+
+.sidebar a:hover{
+    background:#005088;
+}
+
+.content{
+    margin-left:250px;
+    padding:30px;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<script>
+
+if(localStorage.getItem("role") !== "admin"){
+
+    alert("Akses Ditolak!");
+
+    window.location.href = "dashboard.html";
+
+}
+
+</script>
+
+<div class="sidebar">
+
+    <div class="sidebar-header">
+
+        <h4>
+            <i class="fa-solid fa-shield-halved"></i>
+            SSE Admin
+        </h4>
+
+    </div>
+
+    <a href="admin.html">
+        <i class="fa-solid fa-chart-line"></i>
+        Dashboard
+    </a>
+
+    <a href="admin-user.html">
+        <i class="fa-solid fa-users"></i>
+        User Management
+    </a>
+
+    <a href="admin-auditlogs.html">
+        <i class="fa-solid fa-clipboard-list"></i>
+        Audit Logs
+    </a>
+
+    <a href="admin-security.html">
+        <i class="fa-solid fa-shield"></i>
+        Security Status
+    </a>
+
+    <a href="#" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Logout
+    </a>
+
+</div>
+
+<div class="content">
+
+    <h2>
+        Security Audit Logs
+    </h2>
+
+    <p>
+        Riwayat aktivitas keamanan sistem autentikasi.
+    </p>
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <div class="card p-4 text-center">
+
+                <h6>Total Events</h6>
+
+                <h2 id="totalEvents">0</h2>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card p-4 text-center">
+
+                <h6>Login Success</h6>
+
+                <h2 id="loginSuccess">0</h2>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-4">
+
+            <div class="card p-4 text-center">
+
+                <h6>Login Failed</h6>
+
+                <h2 id="loginFailed">0</h2>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card p-4">
+
+        <h4>
+            Audit Trail
+        </h4>
+
+        <hr>
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-dark">
+
+                <tr>
+
+                    <th>Timestamp</th>
+                    <th>Username</th>
+                    <th>Event</th>
+                    <th>IP Address</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="auditTable">
+
+                <tr>
+
+                    <td colspan="4" class="text-center">
+
+                        Loading...
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+async function loadAuditLogs(){
+
+    try{
+
+        const token =
+        localStorage.getItem("token");
+
+        const response =
+        await fetch(
+            '/api/auth/auditlogs',
+            {
+                headers:{
+                    Authorization:
+                    `Bearer ${token}`
+                }
+            }
+        );
+
+        const logs =
+        await response.json();
+
+        let html = '';
+
+        let success = 0;
+        let failed = 0;
+
+        logs.forEach(log => {
+
+            if(log.event === 'LOGIN_SUCCESS'){
+
+                success++;
+
+            }
+
+            if(log.event === 'LOGIN_FAILED'){
+
+                failed++;
+
+            }
+
+            html += `
+
+            <tr>
+
+                <td>${log.created_at}</td>
+
+                <td>${log.username}</td>
+
+                <td>${log.event}</td>
+
+                <td>${log.ip_address}</td>
+
+            </tr>
+
+            `;
+
+        });
+
+        document.getElementById(
+            'auditTable'
+        ).innerHTML = html;
+
+        document.getElementById(
+            'totalEvents'
+        ).innerText = logs.length;
+
+        document.getElementById(
+            'loginSuccess'
+        ).innerText = success;
+
+        document.getElementById(
+            'loginFailed'
+        ).innerText = failed;
+
+    }
+    catch(error){
+
+        console.log(error);
+
+        document.getElementById(
+            'auditTable'
+        ).innerHTML =
+
+        `<tr>
+            <td colspan="4" class="text-center text-danger">
+                Gagal mengambil data audit logs
+            </td>
+        </tr>`;
+
+    }
+
+}
+
+loadAuditLogs();
+
+function logout(){
+
+    localStorage.clear();
+
+    window.location.href =
+    "index.html";
+
+}
+
+</script>
+
+</body>
+</html>
